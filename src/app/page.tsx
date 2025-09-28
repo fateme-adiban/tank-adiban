@@ -1,5 +1,9 @@
-import Image from "next/image"
+import FetchData from "@/components/FetchData"
 
 export default function Home() {
-  return <></>
+  return (
+    <>
+      <FetchData />
+    </>
+  )
 }
