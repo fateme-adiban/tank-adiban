@@ -4,10 +4,8 @@
    npm run dev
 3. Open http://localhost:8080
 
-First, I created the data.json file and added an array of objects representing books.
-Then, I fetched the data in a separate component called FetchData to avoid reducing performance.
-Since we use useState and useEffect, this component needs to be a client component.
-Finally, I fetched and rendered the data in that component.
-I fetched the data from both the state and a JSON file.
+I created a login page component and a dashboard folder with a page inside the app folder for file based routing in Next.js. 
+I saved the session in local storage and created a login/signup form.
 
-![image](readme.png)
+<img width="1920" height="1080" alt="Screenshot 2025-09-28 203100" src="https://github.com/user-attachments/assets/4991940b-470d-4353-a8fc-f0f6cdcacc27" />
+
