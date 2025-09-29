@@ -8,7 +8,8 @@
     "start": "next start -p 8080",
     "lint": "eslint",
     "test": "jest",
-    "test:watch": "jest --watchAll"
+    "test:watch": "jest --watchAll",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "next": "15.5.4",
