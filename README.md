@@ -5,6 +5,6 @@
   - Add, update, delete Board
   - Add, update, delete Column
   - Add, update, delete Card
-  - The demo video is available in the public folder
+  - **The demo video is available in the public folder**
 
   <video controls src="/public/demo-crud.mp4" title="Title"></video>
