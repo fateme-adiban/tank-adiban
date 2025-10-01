@@ -66,9 +66,9 @@ describe("CounterUI", () => {
   it("button text always contains 'Count:'", () => {
     render(<CounterWrapper />)
     const button = screen.getByRole("button")
-    expect(button.textContent).toMatch(/Count:/)
+    expect(button).toHaveTextContent(/Count:/)
     fireEvent.click(button)
-    expect(button.textContent).toMatch(/Count:/)
+    expect(button).toHaveTextContent(/Count:/)
   })
 
   // 8
