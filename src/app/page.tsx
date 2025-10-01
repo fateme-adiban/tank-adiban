@@ -1,3 +1,5 @@
+import Counter from "@/components/Counter"
+import { CounterUI } from "@/components/CounterUI"
 import Crud from "@/components/Crud"
 import DragAndDrop from "@/components/DragAndDrop"
 import FetchData from "@/components/FetchData"
@@ -9,7 +11,8 @@ export default function Home() {
       {/* <FetchData /> */}
       {/* <LoginPage /> */}
       {/* <Crud /> */}
-      <DragAndDrop />
+      {/* <DragAndDrop /> */}
+      <Counter />
     </>
   )
 }
