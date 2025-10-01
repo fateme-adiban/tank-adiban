@@ -43,4 +43,28 @@ npm install @dnd-kit/core @dnd-kit/utilities @dnd-kit/sortable
 - Dragging an item onto itself → no changes are applied.
 - Page refresh → the last saved state is correctly restored.
 
+---
+
+## Optimistic UI
+
+**Definition:** Update the UI immediately in response to a user action **before** the server confirms success.
+
+**How it works:**
+
+1. User performs an action (add task)
+2. UI updates optimistically
+3. Server request is sent in the background
+4. On failure → rollback UI, on success → keep changes
+
+**Benefits:**
+
+- Feels fast and responsive.
+- Better user experience.
+
+**Risks:**
+
+- Rollbacks can feel jarring if server fails frequently.
+
+---
+
 ![demo gif](./public/d&d.gif)
