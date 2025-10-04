@@ -9,10 +9,10 @@ export default function Home() {
   return (
     <>
       {/* <FetchData /> */}
-      {/* <LoginPage /> */}
+      <LoginPage />
       {/* <Crud /> */}
       {/* <DragAndDrop /> */}
-      <Counter />
+      {/* <Counter /> */}
     </>
   )
 }

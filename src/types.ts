@@ -1,0 +1,5 @@
+export type Card = { id: string; title: string }
+export type Column = { id: string; title: string; cards: Card[] }
+export type Board = { id: string; title: string; columns: Column[]; userId: string }
+export type State = { boards: Board[] }
+export type Action = { type: "ADD_BOARD"; data: { title: string } } | { type: "UPDATE_BOARD"; data: { boardId: string; title: string } } | { type: "DELETE_BOARD"; data: { boardId: string } } | { type: "ADD_COLUMN"; data: { boardId: string; title: string } } | { type: "UPDATE_COLUMN"; data: { boardId: string; columnId: string; title: string } } | { type: "DELETE_COLUMN"; data: { boardId: string; columnId: string } } | { type: "ADD_CARD"; data: { boardId: string; columnId: string; title: string } } | { type: "UPDATE_CARD"; data: { boardId: string; columnId: string; card: Card } } | { type: "DELETE_CARD"; data: { boardId: string; columnId: string; cardId: string } } | { type: "MOVE_CARD"; data: { boardId: string; fromColumnId: string; toColumnId: string; cardId: string; toIndex: number } }
