@@ -54,7 +54,7 @@ export function ColumnComponent({ board, column, cardTitles, setCardTitles, edit
       <SortableContext items={column.cards.map(c => c.id)} strategy={verticalListSortingStrategy}>
         <ul ref={setNodeRef}>
           {column.cards.map(card => (
-            <CardItem key={card.id} card={card} boardId={board.id} columnId={column.id} editingCard={editingCard} setEditingCard={setEditingCard} dispatch={dispatch} dispatchOptimistic={dispatchOptimistic} />
+            <CardItem key={card.id} card={card} boardId={board.id} columnId={column.id} editingCard={editingCard} setEditingCard={setEditingCard} dispatchOptimistic={dispatchOptimistic} />
           ))}
         </ul>
       </SortableContext>
