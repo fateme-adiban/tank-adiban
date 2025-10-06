@@ -267,7 +267,18 @@ const KanbanBoard = () => {
   const [cardTitles, setCardTitles] = useState<{ [columnId: string]: string }>({})
   const [editingCard, setEditingCard] = useState<{ boardId: string; columnId: string; card: Card } | null>(null)
 
-  const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }))
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5
+      }
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates
+    })
+  )
 
   const handleDragEnd = (e: DragEndEvent) => {
     const { active, over } = e
