@@ -322,7 +322,6 @@ const KanbanBoard = () => {
       if (Api) await Api()
     } catch (err) {
       console.log(err)
-      console.log(err)
       toast.error("Operation failed!")
       dispatch({ type: "__INIT__", data: prev })
     }
@@ -368,7 +367,7 @@ const KanbanBoard = () => {
             return board.userId === user.username || (board.teamId && board.teamId === user.teamId)
           })
           .map(board => (
-            <div data-testid="board" key={board.id} className="flex justify-start items-start border-2 border-amber-500 min-h-90 rounded-[10px] p-10 flex-col gap-8 text-white mt-10">
+            <div data-testid="board" key={board.id} className="flex justify-start items-start border-2 border-amber-500 min-h-90 rounded-[10px] p-5 md:p-10 flex-col gap-8 text-white mt-10">
               <div className="flex gap-3">
                 <label htmlFor={`edit-board-${board.id}`} className="sr-only">
                   Edit board title
@@ -377,7 +376,7 @@ const KanbanBoard = () => {
                 {canEditBoard(board) && (
                   <button
                     aria-label={`Delete board ${board.title}`}
-                    className="w-[110px] bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 transition-all duration-200 rounded-[3px] cursor-pointer text-white text-center flex items-center justify-center"
+                    className="w-[90px] text-sm md:text-base md:w-[110px] bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 transition-all duration-200 rounded-[3px] cursor-pointer text-white text-center flex items-center justify-center"
                     onClick={async () => {
                       await dispatchOptimistic({ type: "DELETE_BOARD", data: { boardId: board.id } }, async () => {
                         await new Promise((res, rej) => setTimeout(() => (Math.random() < 0.8 ? res(null) : rej("Fake network error")), 500))
@@ -400,7 +399,7 @@ const KanbanBoard = () => {
                     <input id={`add-column-${board.id}`} className="w-[200px] border border-amber-500 rounded-[3px] p-1 focus:outline-none focus:ring-1 focus:ring-amber-500" value={columnTitles[board.id] || ""} onChange={e => setColumnTitles({ ...columnTitles, [board.id]: e.target.value })} placeholder="New column title" />
                     <button
                       aria-label={`Add column to ${board.title}`}
-                      className="w-[110px] bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 transition-all duration-200 rounded-[3px] cursor-pointer text-white text-center flex items-center justify-center"
+                      className="w-[90px] text-sm md:text-base md:w-[110px] bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 transition-all duration-200 rounded-[3px] cursor-pointer text-white text-center flex items-center justify-center"
                       onClick={async () => {
                         if (!canEditBoard(board)) return
 
@@ -423,7 +422,7 @@ const KanbanBoard = () => {
 
               {/* COLUMNS */}
               <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-                <div className="flex flex-wrap justify-between gap-[4rem] mt-[2rem]">
+                <div className="flex flex-wrap justify-center md:justify-between gap-[4rem] mt-[2rem]">
                   {board.columns.map(column => (
                     <ColumnComponent key={column.id} board={board} column={column} cardTitles={cardTitles} setCardTitles={setCardTitles} editingCard={editingCard} setEditingCard={setEditingCard} dispatch={dispatch} dispatchOptimistic={dispatchOptimistic} />
                   ))}

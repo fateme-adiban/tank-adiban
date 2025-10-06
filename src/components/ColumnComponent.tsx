@@ -7,7 +7,7 @@ export function ColumnComponent({ board, column, cardTitles, setCardTitles, edit
   const { setNodeRef } = useDroppable({ id: column.id })
 
   return (
-    <div className="w-80 bg-zinc-800 rounded-lg shadow-xl flex flex-col gap-5 p-[1rem]">
+    <div className="w-70 sm:w-80 bg-zinc-800 rounded-lg shadow-xl flex flex-col gap-5 p-[1rem]">
       <div className="p-4 flex justify-between items-center text-white font-semibold text-xl rounded-t-md border border-blue-400 bg-gradient-to-r from-blue-600 to-blue-400">
         <label htmlFor={`edit-column-${column.title}`} className="sr-only">
           Edit column title
