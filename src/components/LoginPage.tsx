@@ -86,7 +86,7 @@ const LoginPage = () => {
           )}
 
           <div className="flex justify-center">
-            <button type="submit" className="flex justify-center items-center px-2 py-1 w-[25%] border-2 border-black rounded-[5px] mt-2.5 cursor-pointer font-semibold">
+            <button type="submit" className="flex justify-center items-center px-2 py-1 w-[30%] border-2 border-black rounded-[5px] mt-2.5 cursor-pointer font-semibold">
               {isLogin ? "Login" : "Sign up"}
             </button>
           </div>

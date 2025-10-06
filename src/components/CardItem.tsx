@@ -31,7 +31,7 @@ export function CardItem({ card, boardId, columnId, editingCard, setEditingCard,
             aria-label={`Save changes of card ${card.id}`}
             className="w-[50px] p-1 text-sm bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 transition-all duration-200 rounded-[3px] cursor-pointer"
             onPointerDown={e => e.stopPropagation()}
-            onClick={async () => {
+            onPointerUp={async () => {
               if (!editingCard) return
 
               await dispatchOptimistic({ type: "UPDATE_CARD", data: { ...editingCard } }, async () => {
@@ -49,14 +49,14 @@ export function CardItem({ card, boardId, columnId, editingCard, setEditingCard,
         <div className="flex justify-between gap-3 w-full">
           <p className="w-30">{card.title}</p>
           <div className="flex gap-2">
-            <button aria-label={`Edit card ${card.id}`} className="w-[50px] text-sm bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 transition-all duration-200 rounded-[3px] cursor-pointer" onPointerDown={e => e.stopPropagation()} onClick={() => setEditingCard({ boardId, columnId, card })}>
+            <button aria-label={`Edit card ${card.id}`} className="w-[50px] text-sm bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 transition-all duration-200 rounded-[3px] cursor-pointer" onPointerDown={e => e.stopPropagation()} onPointerUp={() => setEditingCard({ boardId, columnId, card })}>
               Edit
             </button>
             <button
               aria-label={`Delete card ${card.id}`}
               className="w-[60px] text-sm bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 transition-all duration-200 text-white rounded-[3px] cursor-pointer"
               onPointerDown={e => e.stopPropagation()}
-              onClick={async () => {
+              onPointerUp={async () => {
                 await dispatchOptimistic({ type: "DELETE_CARD", data: { boardId, columnId, cardId: card.id } }, async () => {
                   await new Promise((res, rej) => setTimeout(() => (Math.random() < 0.8 ? res(null) : rej("Fake network error")), 500))
                   toast.success("Successfully Deleted!")
