@@ -19,6 +19,36 @@ It supports:
 4. Multi-tab sync via `BroadcastChannel`
 5. LocalStorage persistence
 
+## Advanced Features
+
+- Simulated teams and permissions system
+
+- End-to-end (E2E) tests using Playwright
+
+- Improved UX with notifications
+
+- Optimistic updates with logical rollback
+
+- Meaningful tests for critical components
+
+- Simple and extensible code (Clean Code)
+
+- Basic accessibility coverage
+
+## Structure
+
+```bash
+/components
+
+  CardItem.tsx
+  ColumnComponent.tsx
+  LoginPage.tsx
+
+/app/kanbanBoard
+
+  page.tsx
+```
+
 ---
 
 ## Setup & Run Locally
@@ -77,19 +107,24 @@ npm run dev
 
 1. **LocalStorage for Session & State**
 
-   - Pros: Fast, simple for small projects, no server required.
-   - Cons: Data is limited to the user’s browser, insecure for sensitive information, data is lost if the browser is cleared.
+   - Pros: Fast, simple for small projects, no server required
+   - Cons: Data is limited to the user’s browser, insecure for sensitive information, data is lost if the browser is cleared
 
 2. **BroadcastChannel for Multi-Tab Sync**
 
-   - Pros: Simple tab-to-tab synchronization, no need for WebSockets.
-   - Cons: Works only between tabs in the same browser, not across devices.
+   - Pros: Simple tab-to-tab synchronization, no need for WebSockets
+   - Cons: Works only between tabs in the same browser, not across devices
 
 3. **useReducer for State Management**
 
-   - Pros: Suitable for managing complex board and card states, scalable for adding new actions.
-   - Cons: Slightly more complex than `useState`, especially for beginners.
+   - Pros: Suitable for managing complex board and card states, scalable for adding new actions
+   - Cons: Slightly more complex than `useState`, especially for beginners
 
-4. **Client-side Rendering (CSR)**
-   - Pros: Fast for user interactions, full control on the client-side.
-   - Cons: Weaker SEO, initial render may appear delayed, requires careful handling of hydration issues.
+4. **Client side Rendering**
+
+   - Pros: Fast for user interactions, full control on the client-side
+   - Cons: Weaker SEO, initial render may appear delayed, requires careful handling of hydration issues
+
+5. **Using DnD Kit**
+   - Pros: Light weight and modern library, TypeScript friendly, flexible
+   - Cons: Requires smart event management for simultaneous editing and dragging

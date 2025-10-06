@@ -1,50 +1,74 @@
 "use client"
 import React, { useEffect, useReducer, useState } from "react"
-import { closestCorners, DndContext, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, useDroppable } from "@dnd-kit/core"
-import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
+import { closestCorners, DndContext, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core"
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 import type { DragEndEvent } from "@dnd-kit/core"
 import { useRouter } from "next/navigation"
-import { CardItem } from "@/components/CardItem"
+import { ColumnComponent } from "../../components/ColumnComponent"
+import toast from "react-hot-toast"
+import type { State, Action, Card } from "../../types"
 
-import type { State, Action, Board, Column, Card } from "../../types"
+// Users and Teams
+function getCurrentUser() {
+  const session = localStorage.getItem("session")
+  if (!session) return null
+  const allUsers = JSON.parse(localStorage.getItem("users") || "[]")
+  return allUsers.find((user: any) => user.username === session) || null
+}
+
+function isTeamAdmin(teamId: string) {
+  const user = getCurrentUser()
+  if (!user) return false
+  return user.teamId === teamId && user.role === "admin"
+}
+
+function canEditBoard(board: { userId: string; teamId?: string }) {
+  const user = getCurrentUser()
+  if (!user) return false
+  if (board.userId === user.username) return true
+  if (board.teamId && isTeamAdmin(board.teamId)) return true
+  return false
+}
 
 // Reducer
-function reducer(state: State, action: Action | { type: "__INIT__"; data: State }): State {
+export function reducer(state: State, action: Action | { type: "__INIT__"; data: State }): State {
   const session = typeof window !== "undefined" ? localStorage.getItem("session") || "unknown" : "unknown"
 
   switch (action.type) {
     case "__INIT__":
       return action.data
 
-    case "ADD_BOARD":
+    case "ADD_BOARD": {
+      const user = JSON.parse(localStorage.getItem("users") || "[]").find((user: any) => user.username === session)
       return {
         ...state,
-        boards: [...state.boards, { id: crypto.randomUUID(), title: action.data.title, columns: [], userId: session }]
+        boards: [...state.boards, { id: crypto.randomUUID(), title: action.data.title, columns: [], userId: session, teamId: user?.teamId }]
       }
+    }
 
     case "UPDATE_BOARD":
       return {
         ...state,
-        boards: state.boards.map(board => (board.id === action.data.boardId && board.userId === session ? { ...board, title: action.data.title } : board))
+        boards: state.boards.map(board => (board.id === action.data.boardId && canEditBoard(board) ? { ...board, title: action.data.title } : board))
       }
 
     case "DELETE_BOARD":
       return {
         ...state,
-        boards: state.boards.filter(board => board.id !== action.data.boardId || board.userId !== session)
+        boards: state.boards.filter(board => board.id !== action.data.boardId || !canEditBoard(board))
       }
 
     case "ADD_COLUMN":
       return {
         ...state,
-        boards: state.boards.map(board => (board.id === action.data.boardId && board.userId === session ? { ...board, columns: [...board.columns, { id: crypto.randomUUID(), title: action.data.title, cards: [] }] } : board))
+        boards: state.boards.map(board => (board.id === action.data.boardId && canEditBoard(board) ? { ...board, columns: [...board.columns, { id: crypto.randomUUID(), title: action.data.title, cards: [] }] } : board))
       }
 
     case "UPDATE_COLUMN":
       return {
         ...state,
         boards: state.boards.map(board =>
-          board.id === action.data.boardId && board.userId === session
+          board.id === action.data.boardId && canEditBoard(board)
             ? {
                 ...board,
                 columns: board.columns.map(column => (column.id === action.data.columnId ? { ...column, title: action.data.title } : column))
@@ -56,14 +80,14 @@ function reducer(state: State, action: Action | { type: "__INIT__"; data: State 
     case "DELETE_COLUMN":
       return {
         ...state,
-        boards: state.boards.map(board => (board.id === action.data.boardId && board.userId === session ? { ...board, columns: board.columns.filter(column => column.id !== action.data.columnId) } : board))
+        boards: state.boards.map(board => (board.id === action.data.boardId && canEditBoard(board) ? { ...board, columns: board.columns.filter(column => column.id !== action.data.columnId) } : board))
       }
 
     case "ADD_CARD":
       return {
         ...state,
         boards: state.boards.map(board =>
-          board.id === action.data.boardId && board.userId === session
+          board.id === action.data.boardId && canEditBoard(board)
             ? {
                 ...board,
                 columns: board.columns.map(column => (column.id === action.data.columnId ? { ...column, cards: [...column.cards, { id: crypto.randomUUID(), title: action.data.title }] } : column))
@@ -76,7 +100,7 @@ function reducer(state: State, action: Action | { type: "__INIT__"; data: State 
       return {
         ...state,
         boards: state.boards.map(board =>
-          board.id === action.data.boardId && board.userId === session
+          board.id === action.data.boardId && canEditBoard(board)
             ? {
                 ...board,
                 columns: board.columns.map(column =>
@@ -96,7 +120,7 @@ function reducer(state: State, action: Action | { type: "__INIT__"; data: State 
       return {
         ...state,
         boards: state.boards.map(board =>
-          board.id === action.data.boardId && board.userId === session
+          board.id === action.data.boardId && canEditBoard(board)
             ? {
                 ...board,
                 columns: board.columns.map(column => (column.id === action.data.columnId ? { ...column, cards: column.cards.filter(card => card.id !== action.data.cardId) } : column))
@@ -107,20 +131,21 @@ function reducer(state: State, action: Action | { type: "__INIT__"; data: State 
 
     case "MOVE_CARD": {
       const { boardId, fromColumnId, toColumnId, cardId, toIndex } = action.data
+
       return {
         ...state,
         boards: state.boards.map(board => {
-          if (board.id !== boardId || board.userId !== session) return board
+          if (board.id !== boardId || !canEditBoard(board)) return board
+
           const fromCol = board.columns.find(c => c.id === fromColumnId)
           const toCol = board.columns.find(c => c.id === toColumnId)
           if (!fromCol || !toCol) return board
+
           const card = fromCol.cards.find(c => c.id === cardId)
           if (!card) return board
 
-          // remove from source
           const newFromCols = board.columns.map(c => (c.id === fromColumnId ? { ...c, cards: c.cards.filter(cd => cd.id !== cardId) } : c))
 
-          // insert into destination
           const newToColumns = newFromCols.map(c => {
             if (c.id !== toColumnId) return c
             const destCards = [...c.cards]
@@ -168,11 +193,11 @@ function findCardIndex(state: State, cardId: string) {
   return -1
 }
 
-// Hook for tab sync with localStorage persistence
+// Tab sync and localStorage
 const TabSync = () => {
-  const [state, baseDispatch] = useReducer(reducer, { boards: [] }, initial => {
+  const [state, dispatch] = useReducer(reducer, { boards: [] }, initial => {
     try {
-      const saved = localStorage.getItem("kanban_state")
+      const saved = localStorage.getItem("kanban")
       return saved ? JSON.parse(saved) : initial
     } catch {
       return initial
@@ -182,75 +207,46 @@ const TabSync = () => {
   useEffect(() => {
     const channel = new BroadcastChannel("kanban_channel")
 
-    channel.onmessage = event => {
-      const msg = event.data
+    channel.onmessage = e => {
+      const msg = e.data
       if (msg?.type === "__SYNC__") {
-        baseDispatch({ type: "__INIT__", data: msg.data })
+        dispatch({ type: "__INIT__", data: msg.data })
       }
     }
 
-    // ✅ Persist state to localStorage
-    localStorage.setItem("kanban_state", JSON.stringify(state))
+    localStorage.setItem("kanban", JSON.stringify(state))
 
-    // ✅ Broadcast to other tabs
     channel.postMessage({ type: "__SYNC__", data: state })
 
     return () => channel.close()
   }, [state])
 
-  // Wrapper dispatch
-  const dispatch: React.Dispatch<Action> = action => {
-    baseDispatch(action)
-  }
-
   return { state, dispatch }
-}
-
-function ColumnComponent({ board, column, cardTitles, setCardTitles, editingCard, setEditingCard, dispatch }: { board: Board; column: Column; cardTitles: { [columnId: string]: string }; setCardTitles: React.Dispatch<React.SetStateAction<{ [columnId: string]: string }>>; editingCard: { boardId: string; columnId: string; card: Card } | null; setEditingCard: React.Dispatch<React.SetStateAction<{ boardId: string; columnId: string; card: Card } | null>>; dispatch: React.Dispatch<Action> }) {
-  const { setNodeRef } = useDroppable({ id: column.id })
-
-  return (
-    <div key={column.id} className="w-80 bg-zinc-800 rounded-lg shadow-xl flex flex-col gap-5 p-[1rem]">
-      <div className="p-4 flex justify-between items-center text-white font-semibold text-xl rounded-t-md border border-blue-400 bg-gradient-to-r from-blue-600 to-blue-400">
-        <input className="w-[90%] border border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-[3px] px-1" value={column.title} onChange={e => dispatch({ type: "UPDATE_COLUMN", data: { boardId: board.id, columnId: column.id, title: e.target.value } })} />
-        <button onClick={() => dispatch({ type: "DELETE_COLUMN", data: { boardId: board.id, columnId: column.id } })}>
-          <span className="text-zinc-900 text-lg cursor-pointer">x</span>
-        </button>
-      </div>
-
-      {/* ADD CARD */}
-      <div className="flex justify-center gap-3 text-white">
-        <input className="w-[150px] border border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 rounded-[3px] px-1" value={cardTitles[column.id] || ""} onChange={e => setCardTitles({ ...cardTitles, [column.id]: e.target.value })} />
-        <button
-          className="w-[70px] text-sm bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 transition-all duration-200 text-white rounded-[3px] cursor-pointer"
-          onClick={() => {
-            const title = cardTitles[column.id]
-            if (title && title.trim()) {
-              dispatch({ type: "ADD_CARD", data: { boardId: board.id, columnId: column.id, title } })
-              setCardTitles({ ...cardTitles, [column.id]: "" })
-            }
-          }}
-        >
-          Add Card
-        </button>
-      </div>
-
-      {/* CARDS with DnD */}
-      <SortableContext items={column.cards.map(c => c.id)} strategy={verticalListSortingStrategy}>
-        <ul ref={setNodeRef}>
-          {column.cards.map(card => (
-            <CardItem key={card.id} card={card} boardId={board.id} columnId={column.id} editingCard={editingCard} setEditingCard={setEditingCard} dispatch={dispatch} />
-          ))}
-        </ul>
-      </SortableContext>
-    </div>
-  )
 }
 
 // KanbanBoard
 const KanbanBoard = () => {
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+
+    const users = [
+      { username: "fateme", password: "123", teamId: "team1", role: "admin" },
+      { username: "ali", password: "123", teamId: "team1", role: "member" }
+    ]
+
+    if (!localStorage.getItem("users")) {
+      localStorage.setItem("users", JSON.stringify(users))
+    }
+
+    const teams = [{ id: "team1", name: "Team One", members: ["fateme", "ali"] }]
+
+    if (!localStorage.getItem("teams")) {
+      localStorage.setItem("teams", JSON.stringify(teams))
+    }
+  }, [router])
 
   useEffect(() => {
     setIsClient(true)
@@ -266,10 +262,10 @@ const KanbanBoard = () => {
 
   const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }))
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e
     if (!over) return
-    if (String(active.id) === String(over.id)) return
+    if (active.id === over.id) return
 
     const activeId = String(active.id)
     const overId = String(over.id)
@@ -277,17 +273,15 @@ const KanbanBoard = () => {
     const fromBoardId = findBoardId(state, activeId)
     const fromColumnId = findColumnId(state, activeId)
 
-    // destination column — could be a card id or a column id (columns are registered as droppable)
     let toColumnId = findColumnId(state, overId)
     let toIndex = findCardIndex(state, overId)
 
-    // if overId refers to a column (dropping into empty column), set index to end
     if (!toColumnId) {
       for (const b of state.boards) {
         const col = b.columns.find(c => c.id === overId)
         if (col) {
           toColumnId = col.id
-          toIndex = col.cards.length // put at end
+          toIndex = col.cards.length
           break
         }
       }
@@ -295,8 +289,7 @@ const KanbanBoard = () => {
 
     if (!fromBoardId || !fromColumnId || !toColumnId) return
 
-    // ensure valid index
-    if (typeof toIndex !== "number" || toIndex < 0) {
+    if (toIndex < 0) {
       const toCol = state.boards.find(b => b.columns.some(c => c.id === toColumnId))!.columns.find(c => c.id === toColumnId)!
       toIndex = toCol.cards.length
     }
@@ -313,6 +306,19 @@ const KanbanBoard = () => {
     })
   }
 
+  // optimistic updates
+  const dispatchOptimistic = async (action: Action, Api?: () => Promise<void>) => {
+    const prev = structuredClone(state)
+    dispatch(action)
+
+    try {
+      if (Api) await Api()
+    } catch (err) {
+      toast.error("Operation failed!")
+      dispatch({ type: "__INIT__", data: prev })
+    }
+  }
+
   if (!isClient) return null
 
   return (
@@ -322,14 +328,22 @@ const KanbanBoard = () => {
 
         {/* ADD BOARD */}
         <div className="flex gap-3 justify-center items-center">
-          <input className="w-[50%] p-3 bg-zinc-700 text-white rounded-[5px] focus:outline-none focus:ring-1 focus:ring-amber-500" value={boardTitle} onChange={e => setBoardTitle(e.target.value)} placeholder="New board title" />
+          <label htmlFor="new-board-title" className="sr-only">
+            New board title
+          </label>
+          <input id="new-board-title" className="w-[50%] p-3 bg-zinc-700 text-white rounded-[5px] focus:outline-none focus:ring-1 focus:ring-amber-500" value={boardTitle} onChange={e => setBoardTitle(e.target.value)} placeholder="New board title" />
           <button
+            aria-label={`Add board`}
             className="w-[30%] lg:w-[15%] xl:w-[9%] p-3 bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-500 transition-all duration-200 text-white rounded-[5px] cursor-pointer"
-            onClick={() => {
-              if (boardTitle.trim()) {
-                dispatch({ type: "ADD_BOARD", data: { title: boardTitle } })
-                setBoardTitle("")
-              }
+            onClick={async () => {
+              if (!boardTitle.trim()) return
+
+              await dispatchOptimistic({ type: "ADD_BOARD", data: { title: boardTitle } }, async () => {
+                await new Promise((res, rej) => setTimeout(() => (Math.random() < 0.8 ? res(null) : rej("Fake network error")), 500))
+                toast.success("Board added successfully!")
+              })
+
+              setBoardTitle("")
             }}
           >
             Add Board
@@ -338,38 +352,71 @@ const KanbanBoard = () => {
 
         {/* BOARDS */}
         {state.boards
-          .filter(board => board.userId === localStorage.getItem("session"))
+          .filter(board => {
+            const user = getCurrentUser()
+            if (!user) return false
+
+            return board.userId === user.username || (board.teamId && board.teamId === user.teamId)
+          })
           .map(board => (
-            <div key={board.id} className="flex justify-start items-start border-2 border-amber-500 min-h-90 rounded-[10px] p-10 flex-col gap-8 text-white mt-10">
+            <div data-testid="board" key={board.id} className="flex justify-start items-start border-2 border-amber-500 min-h-90 rounded-[10px] p-10 flex-col gap-8 text-white mt-10">
               <div className="flex gap-3">
-                <input className="w-[110px] border border-amber-500 rounded-[3px] p-1 focus:outline-none focus:ring-1 focus:ring-amber-500" value={board.title} onChange={e => dispatch({ type: "UPDATE_BOARD", data: { boardId: board.id, title: e.target.value } })} />
-                <button className="w-[110px] bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 transition-all duration-200 rounded-[3px] cursor-pointer text-white text-center flex items-center justify-center" onClick={() => dispatch({ type: "DELETE_BOARD", data: { boardId: board.id } })}>
-                  Delete Board
-                </button>
+                <label htmlFor={`edit-board-${board.id}`} className="sr-only">
+                  Edit board title
+                </label>
+                <input id={`edit-board-${board.id}`} className="w-[110px] border border-amber-500 rounded-[3px] p-1 focus:outline-none focus:ring-1 focus:ring-amber-500" value={board.title} onChange={e => dispatch({ type: "UPDATE_BOARD", data: { boardId: board.id, title: e.target.value } })} />
+                {canEditBoard(board) && (
+                  <button
+                    aria-label={`Delete board ${board.title}`}
+                    className="w-[110px] bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 transition-all duration-200 rounded-[3px] cursor-pointer text-white text-center flex items-center justify-center"
+                    onClick={async () => {
+                      await dispatchOptimistic({ type: "DELETE_BOARD", data: { boardId: board.id } }, async () => {
+                        await new Promise((res, rej) => setTimeout(() => (Math.random() < 0.8 ? res(null) : rej("Fake network error")), 500))
+                        toast.success("Successfully Deleted!")
+                      })
+                    }}
+                  >
+                    Delete Board
+                  </button>
+                )}
               </div>
 
               {/* ADD COLUMN */}
               <div className="flex gap-3">
-                <input className="w-[200px] border border-amber-500 rounded-[3px] p-1 focus:outline-none focus:ring-1 focus:ring-amber-500" value={columnTitles[board.id] || ""} onChange={e => setColumnTitles({ ...columnTitles, [board.id]: e.target.value })} placeholder="New column title" />
-                <button
-                  className="w-[110px] bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 transition-all duration-200 rounded-[3px] cursor-pointer text-white text-center flex items-center justify-center"
-                  onClick={() => {
-                    const title = columnTitles[board.id]
-                    if (title.trim()) {
-                      dispatch({ type: "ADD_COLUMN", data: { boardId: board.id, title } })
-                      setColumnTitles({ ...columnTitles, [board.id]: "" })
-                    }
-                  }}
-                >
-                  Add Column
-                </button>
+                {canEditBoard(board) && (
+                  <>
+                    <label htmlFor={`add-column-${board.id}`} className="sr-only">
+                      New column title
+                    </label>
+                    <input id={`add-column-${board.id}`} className="w-[200px] border border-amber-500 rounded-[3px] p-1 focus:outline-none focus:ring-1 focus:ring-amber-500" value={columnTitles[board.id] || ""} onChange={e => setColumnTitles({ ...columnTitles, [board.id]: e.target.value })} placeholder="New column title" />
+                    <button
+                      aria-label={`Add column to ${board.title}`}
+                      className="w-[110px] bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 transition-all duration-200 rounded-[3px] cursor-pointer text-white text-center flex items-center justify-center"
+                      onClick={async () => {
+                        if (!canEditBoard(board)) return
+
+                        const title = columnTitles[board.id]
+                        if (!title.trim()) return
+
+                        await dispatchOptimistic({ type: "ADD_COLUMN", data: { boardId: board.id, title } }, async () => {
+                          await new Promise((res, rej) => setTimeout(() => (Math.random() < 0.8 ? res(null) : rej("Fake network error")), 500))
+                          toast.success("Column Added Successfully!")
+                        })
+
+                        setColumnTitles({ ...columnTitles, [board.id]: "" })
+                      }}
+                    >
+                      Add Column
+                    </button>
+                  </>
+                )}
               </div>
 
-              {/* COLUMNS (single DndContext for the board) */}
+              {/* COLUMNS */}
               <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
                 <div className="flex flex-wrap justify-between gap-[4rem] mt-[2rem]">
                   {board.columns.map(column => (
-                    <ColumnComponent key={column.id} board={board} column={column} cardTitles={cardTitles} setCardTitles={setCardTitles} editingCard={editingCard} setEditingCard={setEditingCard} dispatch={dispatch} />
+                    <ColumnComponent key={column.id} board={board} column={column} cardTitles={cardTitles} setCardTitles={setCardTitles} editingCard={editingCard} setEditingCard={setEditingCard} dispatch={dispatch} dispatchOptimistic={dispatchOptimistic} />
                   ))}
                 </div>
               </DndContext>

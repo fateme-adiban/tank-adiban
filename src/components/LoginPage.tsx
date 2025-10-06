@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import toast from "react-hot-toast"
 
 type User = {
   username: string
@@ -22,12 +23,14 @@ const LoginPage = () => {
 
     if (userExists) {
       setError("User already exists")
+      toast.error("Oops! We couldn’t complete your sign-up")
     } else {
       const newUser = { username, password }
       users.push(newUser)
       localStorage.setItem("users", JSON.stringify(users))
       localStorage.setItem("session", username)
       router.push("/kanbanBoard")
+      toast.success("Signed up successfully!")
     }
   }
 
@@ -38,15 +41,22 @@ const LoginPage = () => {
     if (user) {
       localStorage.setItem("session", username)
       router.push("/kanbanBoard")
+      toast.success("Logged in successfully!")
     } else {
       setError("Incorrect username or password")
+      toast.error("Oops! We couldn’t log you in.")
     }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    isLogin ? handleLogin() : handleSignUp()
+
+    if (isLogin) {
+      handleLogin()
+    } else {
+      handleSignUp()
+    }
   }
 
   return (
