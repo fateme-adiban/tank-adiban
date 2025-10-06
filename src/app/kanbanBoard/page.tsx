@@ -9,11 +9,18 @@ import toast from "react-hot-toast"
 import type { State, Action, Card } from "../../types"
 
 // Users and Teams
+interface User {
+  username: string
+  password: string
+  teamId?: string
+  role?: "admin" | "member"
+}
+
 function getCurrentUser() {
   const session = localStorage.getItem("session")
   if (!session) return null
   const allUsers = JSON.parse(localStorage.getItem("users") || "[]")
-  return allUsers.find((user: any) => user.username === session) || null
+  return allUsers.find((user: User) => user.username === session) || null
 }
 
 function isTeamAdmin(teamId: string) {
@@ -39,7 +46,7 @@ export function reducer(state: State, action: Action | { type: "__INIT__"; data:
       return action.data
 
     case "ADD_BOARD": {
-      const user = JSON.parse(localStorage.getItem("users") || "[]").find((user: any) => user.username === session)
+      const user = JSON.parse(localStorage.getItem("users") || "[]").find((user: User) => user.username === session)
       return {
         ...state,
         boards: [...state.boards, { id: crypto.randomUUID(), title: action.data.title, columns: [], userId: session, teamId: user?.teamId }]
