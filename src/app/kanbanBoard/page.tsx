@@ -321,6 +321,8 @@ const KanbanBoard = () => {
     try {
       if (Api) await Api()
     } catch (err) {
+      console.log(err)
+      console.log(err)
       toast.error("Operation failed!")
       dispatch({ type: "__INIT__", data: prev })
     }
