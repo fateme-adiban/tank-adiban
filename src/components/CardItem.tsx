@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities"
 import type { Card, Action } from "../types"
 import toast from "react-hot-toast"
 
-export function CardItem({ card, boardId, columnId, editingCard, setEditingCard, dispatch, dispatchOptimistic }: { card: Card; boardId: string; columnId: string; editingCard: { boardId: string; columnId: string; card: Card } | null; setEditingCard: React.Dispatch<React.SetStateAction<{ boardId: string; columnId: string; card: Card } | null>>; dispatch: React.Dispatch<Action>; dispatchOptimistic: (action: Action, api?: () => Promise<void>) => Promise<void> }) {
+export function CardItem({ card, boardId, columnId, editingCard, setEditingCard, dispatchOptimistic }: { card: Card; boardId: string; columnId: string; editingCard: { boardId: string; columnId: string; card: Card } | null; setEditingCard: React.Dispatch<React.SetStateAction<{ boardId: string; columnId: string; card: Card } | null>>; dispatchOptimistic: (action: Action, api?: () => Promise<void>) => Promise<void> }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     disabled: editingCard?.card.id === card.id
