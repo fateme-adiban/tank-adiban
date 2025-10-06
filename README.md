@@ -3,5 +3,5 @@
 ### deploy link
 
 ```bash
-https://tankadiban.vercel.app/
+https://tank-adiban-git-feature-6-fateme-adibans-projects.vercel.app/
 ```
