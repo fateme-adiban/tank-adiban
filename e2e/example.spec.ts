@@ -39,20 +39,16 @@ test.describe("Kanban Page", () => {
     await expect(page.getByRole("button", { name: "Add Board" })).toBeVisible()
   })
 
+  // Uncomment this test if you want to test adding boards
   // test("should add a new board and display it", async ({ page }) => {
-  //   await expect(page.getByPlaceholder("New board title")).toBeVisible()
-
   //   const input = page.getByPlaceholder("New board title")
   //   await input.fill("My First Board")
-
   //   await page.getByRole("button", { name: "Add Board" }).click()
-
+  //
   //   const boards = page.getByTestId("board")
   //   await expect(boards).toHaveCount(1)
-
-  //   const lastBoard = boards.last()
-  //   await expect(lastBoard).toBeVisible()
-
+  //   await expect(boards.last()).toBeVisible()
+  //
   //   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("kanban") || "{}"))
   //   expect(stored.boards.length).toBe(1)
   //   expect(stored.boards[0].title).toBe("My First Board")
